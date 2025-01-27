@@ -21,6 +21,7 @@ const sahipSchema = new mongoose.Schema({
 });
 
 const Sahip = mongoose.model('Sahip', sahipSchema);
+module.exports = { Sahip };
 
 // Komutlar dizisi
 const komutlar = [];
