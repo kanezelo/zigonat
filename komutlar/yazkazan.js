@@ -1,5 +1,4 @@
-const Discord = require('discord.js-selfbot-v13');
-const client = new Discord.Client();
+const { addCoins } = require('../util/coinManager'); // Coin sistemini dahil et
 const config = require('../config.json');
 
 // Kelime listesi
@@ -47,15 +46,21 @@ module.exports = {
     // Mesajları dinle
     const collector = message.channel.createMessageCollector((m) => m.author.id !== client.user.id, { time: oyunSuresi * 1000 });
 
-    collector.on('collect', (m) => {
+    collector.on('collect', async (m) => { // async ekledik
       if (m.content.toLowerCase() === kelime.toLowerCase()) {
-        // Doğru yazan ilk kişi kazanan ilan edilir
-        message.channel.send(`**TEBRİKLER!**\n<@${m.author.id}> **KAZANDI!**\n`);
+        const kazanilanCoin = Math.floor(Math.random() * (15 - 5 + 1)) + 5; // Rastgele 5-15 coin
 
-        aktifOyunlar[message.channel.id] = false;
-        collector.stop();
+          const kazananId = m.author.id;
+  
+          const yeniBakiye = await addCoins(kazananId, kazanilanCoin); // Coin ekleme işlemi
+  
+          message.channel.send(`🎉 **TEBRİKLER!**\n<@${kazananId}> **KAZANDI!** 🏆\n🔹 Kazandığı Coin: **${kazanilanCoin}** 🪙\n💰 Yeni Bakiyeniz: **${yeniBakiye}** coin!`);
+  
+          aktifOyunlar[message.channel.id] = false;
+          collector.stop();
       }
-    });
+  });
+  
 
     collector.on('end', (collected) => {
       if (aktifOyunlar[message.channel.id]) {
