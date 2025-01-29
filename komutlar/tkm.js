@@ -1,3 +1,5 @@
+const { addCoins } = require('../util/coinManager'); // Coin sistemini dahil et
+
 module.exports = {
   name: 'tkm',
   description: 'Taş Kağıt Makas oyunu oynayın.',
@@ -17,7 +19,7 @@ module.exports = {
     message.channel.send(`${player2.username}, ${player1.username} seçim yapıyor. Bekleniyor...`);
 
     // Kullanıcı seçimlerini al
-    async function getChoice(player, otherPlayer) {
+    async function getChoice(player) {
       try {
         const dm = await player.createDM();
         await dm.send('Taş, Kağıt veya Makas seçin. (Mesajınızı buraya yazın)');
@@ -33,48 +35,60 @@ module.exports = {
 
         // Seçimi kaydet
         const choice = collected.first().content.toLowerCase();
-        message.channel.send(`${player.username} seçimini yaptı `);
+        message.channel.send(`${player.username} seçimini yaptı ✅`);
 
         return choice;
       } catch (error) {
-        // Eğer DM gönderilemiyorsa, DM açılmasa da doğrudan kanal üzerinden ileti gönder
         message.channel.send(`${player.username}, DM kanalı kapalı olduğu için seçim yapamadı. Lütfen DM kanalınızı açın.`);
         return null;
       }
     }
 
     // Seçimleri al
-    const player1Choice = await getChoice(player1, player2);
+    const player1Choice = await getChoice(player1);
     if (!player1Choice) {
       return message.reply(`${player1.username} seçim yapmadı, oyun iptal edildi.`);
     }
 
-    const player2Choice = await getChoice(player2, player1);
+    const player2Choice = await getChoice(player2);
     if (!player2Choice) {
       return message.reply(`${player2.username} seçim yapmadı, oyun iptal edildi.`);
     }
 
     // Kazananı belirle
     let result = '';
+    let kazanan = null;
+
     if (player1Choice === player2Choice) {
-      result = 'Berabere!';
+      result = '🟰 **Berabere!**';
     } else if (
       (player1Choice === 'taş' && player2Choice === 'makas') ||
       (player1Choice === 'kağıt' && player2Choice === 'taş') ||
       (player1Choice === 'makas' && player2Choice === 'kağıt')
     ) {
-      result = `${player1.username} kazandı! (${player1Choice} vs ${player2Choice})`;
+      result = `🏆 **${player1.username} kazandı!** (${player1Choice} vs ${player2Choice})`;
+      kazanan = player1;
     } else {
-      result = `${player2.username} kazandı! (${player2Choice} vs ${player1Choice})`;
+      result = `🏆 **${player2.username} kazandı!** (${player2Choice} vs ${player1Choice})`;
+      kazanan = player2;
     }
 
-    // Sonuçları ve seçimleri komutun yazıldığı kanalda göster
+    // Kazanan kişiye coin ekleme
+    let kazananMesaji = '';
+    if (kazanan) {
+      const kazanilanCoin = Math.floor(Math.random() * (50 - 10 + 1)) + 10;
+      const yeniBakiye = await addCoins(kazanan.id, kazanilanCoin);
+      kazananMesaji = `\n🎉 **${kazanan.username}, ${kazanilanCoin} coin kazandı!** 🪙\n💰 Yeni Bakiyeniz: **${yeniBakiye}** coin!`;
+    }
+
+    // Sonuçları ve seçimleri kanalda göster
     message.channel.send(`
-**Oyun Sonucu:**
+🎮 **Oyun Sonucu:**
 - ${player1.username} seçimi: **${player1Choice}**
 - ${player2.username} seçimi: **${player2Choice}**
 
 ${result}
+${kazananMesaji}
     `);
   }
 };
