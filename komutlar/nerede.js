@@ -2,6 +2,11 @@ module.exports = {
     name: 'n',
     description: 'Etiketlenen veya ID girilen kullanıcının botun olduğu tüm sunucularda hangi ses kanalında olduğunu söyler.',
     async execute(message, args) {
+        // Sadece .n komutunu algılasın
+        if (message.content.trim() !== '.n' && !message.content.startsWith('.n ')) {
+            return;
+        }
+
         if (args.length === 0) {
             return message.reply('Bir kullanıcı etiketle veya bir ID gir!');
         }
